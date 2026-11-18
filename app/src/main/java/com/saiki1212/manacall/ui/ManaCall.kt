@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -105,6 +106,7 @@ internal fun ManaCall(
     var tab by rememberSaveable { mutableStateOf(ContactTab.Photos) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchFocused by remember { mutableStateOf(false) }
+    var hideSearch by rememberSaveable { mutableStateOf(false) }
     val gridState = key(tab) { rememberLazyGridState() }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -138,6 +140,13 @@ internal fun ManaCall(
         }
     }
 
+    LaunchedEffect(gridState) {
+        snapshotFlow { gridState.isScrollInProgress to gridState.lastScrolledForward }
+            .observeSearchBar { hidden ->
+                if (hidden || !gridState.isScrollInProgress) hideSearch = hidden
+            }
+    }
+
     LaunchedEffect(searchQuery, gridState) {
         if (searchQuery.isNotEmpty()) gridState.scrollToItem(0)
     }
@@ -150,9 +159,8 @@ internal fun ManaCall(
                 if (selected == null) {
                     Column {
                         ContactsHeader(language, setLanguage)
-                        val scrollingDown = gridState.isScrollInProgress && gridState.lastScrolledForward
                         val editingSearch = searchFocused && WindowInsets.ime.getBottom(LocalDensity.current) > 0
-                        if (contactsGranted && currentSnapshot != null && !failed && (!scrollingDown || editingSearch)) {
+                        if (contactsGranted && currentSnapshot != null && !failed && (!hideSearch || editingSearch)) {
                             ContactSearchField(
                                 query = searchQuery,
                                 changeQuery = { searchQuery = it },

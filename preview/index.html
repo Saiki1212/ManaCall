@@ -31,7 +31,7 @@ button:focus-visible, .photo-grid:focus-visible { outline: 3px solid #4e53bd; ou
 .app-bar { padding: 17px 18px; min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 24px; letter-spacing: -.045em; }
 .glyph { inline-size: 24px; block-size: 24px; flex: none; }
-.brand-icon { padding: 8px; inline-size: 38px; block-size: 38px; background: var(--primary); color: white; border-radius: 12px; }
+.brand-icon { flex: none; inline-size: 38px; block-size: 38px; background: var(--primary); color: white; border-radius: 12px; }
 .language { display: inline-flex; padding: 2px; background: #efeff8; border: 1px solid var(--border); border-radius: 14px; }
 .language button { min-height: 44px; min-width: 43px; border: 0; border-radius: 11px; padding: 0 8px; background: transparent; font-size: 14px; font-weight: 730; }
 .language button[aria-pressed="true"] { background: var(--primary); color: white; }
@@ -103,7 +103,7 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
 </head>
 <body>
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.7 19.7 0 0 1 11.2 19a19.3 19.3 0 0 1-6-6A19.6 19.6 0 0 1 2.3 4.3 2 2 0 0 1 4.3 2h3a2 2 0 0 1 2 1.7l.6 2.9a2 2 0 0 1-.5 2.1l-1.3 1.3a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5l2.9.6a2 2 0 0 1 1.6 2.1Z"/></symbol>
+  <symbol id="i-app" viewBox="18 18 72 72"><path fill="none" d="M35,31h23a7,7 0,0 1,7 7v26a7,7 0,0 1,-7 7H35a7,7 0,0 1,-7 -7V38a7,7 0,0 1,7 -7z" stroke="#FFFFFF" stroke-width="5"/><path fill="#FFFFFF" d="M46.5,39a6.5,6.5 0,1 0,0 13a6.5,6.5 0,1 0,0 -13zM34,62.5c0,-5.2 5.6,-8.5 12.5,-8.5S59,57.3 59,62.5V65H34z"/><path fill="#BDF3D4" d="M68,66m-16,0a16,16 0,1 1,32 0a16,16 0,1 1,-32 0"/><g transform="translate(56 54)"><path fill="#123B2D" d="M6.62,10.79a15.05,15.05 0,0 0,6.59 6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1C10.61,21 3,13.39 3,4c0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02z"/></g></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 5-7 7 7 7M5 12h14"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m14.5 14.5 5 5"/></symbol>
   <symbol id="i-clear" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
@@ -124,7 +124,7 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
     <section class="phone grid-phone" aria-labelledby="contacts-heading">
       <div class="screen">
         <div class="app-bar">
-          <div class="brand"><svg class="glyph brand-icon" aria-hidden="true"><use href="#i-phone"/></svg>ManaCall</div>
+          <div class="brand"><svg class="brand-icon" aria-hidden="true"><use href="#i-app"/></svg>ManaCall</div>
           <div class="language" role="group" aria-label="Language">
             <button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
             <button type="button" data-language="te" lang="te" aria-pressed="false">తెలుగు</button>
@@ -222,12 +222,15 @@ let previousScroll = 0;
 let scrollTimer;
 gridScroll.addEventListener("scroll", () => {
   const next = gridScroll.scrollTop;
-  if (next !== previousScroll) {
-    search.hidden = next > previousScroll && document.activeElement !== searchInput;
+  if (next === previousScroll) return;
+  if (next > previousScroll && document.activeElement !== searchInput) {
+    search.hidden = true;
   }
   previousScroll = next;
   clearTimeout(scrollTimer);
-  scrollTimer = setTimeout(() => { search.hidden = false; }, 160);
+  if (search.hidden) {
+    scrollTimer = setTimeout(() => { search.hidden = false; }, 5000);
+  }
 });
 const searchInput = document.querySelector(".search input");
 const clearSearch = document.querySelector(".clear-search");

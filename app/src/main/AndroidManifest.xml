@@ -9,7 +9,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/ic_manacall"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales"
         android:supportsRtl="true"

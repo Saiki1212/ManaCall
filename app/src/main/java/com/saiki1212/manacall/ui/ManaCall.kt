@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -83,14 +86,14 @@ internal fun ManaCall(
     callHandoff: CallHandoff,
     favorites: Map<String, Boolean>,
     setFavorite: (Contact, Boolean) -> Unit,
-    requestPhoneCall: (String) -> Unit,
-    requestWhatsAppCall: (Intent?, String) -> Unit,
+    recentContacts: List<String>,
+    requestPhoneCall: (String, String) -> Unit,
+    requestWhatsAppVideo: (String, Intent) -> Unit,
     @StringRes phoneMessage: Int?,
     clearPhoneMessage: () -> Unit,
     contactsGranted: Boolean,
     permissionRequiresSettings: Boolean,
     requestContacts: () -> Unit,
-    whatsappAvailable: Boolean,
     setLanguage: (String) -> Unit,
     settingsError: Boolean,
     clearSettingsError: () -> Unit,
@@ -101,6 +104,7 @@ internal fun ManaCall(
     var selectedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var tab by rememberSaveable { mutableStateOf(ContactTab.Photos) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var searchFocused by remember { mutableStateOf(false) }
     val gridState = key(tab) { rememberLazyGridState() }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -146,10 +150,14 @@ internal fun ManaCall(
                 if (selected == null) {
                     Column {
                         ContactsHeader(language, setLanguage)
-                        if (contactsGranted && currentSnapshot != null && !failed) {
-                            ContactSearchField(searchQuery) { updated ->
-                                searchQuery = updated
-                            }
+                        val scrollingDown = gridState.isScrollInProgress && gridState.lastScrolledForward
+                        val editingSearch = searchFocused && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                        if (contactsGranted && currentSnapshot != null && !failed && (!scrollingDown || editingSearch)) {
+                            ContactSearchField(
+                                query = searchQuery,
+                                changeQuery = { searchQuery = it },
+                                changeFocus = { searchFocused = it },
+                            )
                         }
                     }
                 } else {
@@ -205,15 +213,15 @@ internal fun ManaCall(
                         contact = selected,
                         photoRevision = currentSnapshot.photoRevision,
                         callHandoff = callHandoff,
-                        requestPhoneCall = requestPhoneCall,
-                        requestWhatsAppCall = requestWhatsAppCall,
-                        whatsappAvailable = whatsappAvailable,
+                        requestPhoneCall = { requestPhoneCall(selected.key, it) },
+                        requestWhatsAppVideo = { requestWhatsAppVideo(selected.key, it) },
                     )
                     else -> PhotoGrid(
                         snapshot = currentSnapshot,
                         tab = tab,
                         query = searchQuery,
                         favorites = favorites,
+                        recentContacts = recentContacts,
                         gridState = gridState,
                         openContact = {
                             focus.clearFocus()

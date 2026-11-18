@@ -1,10 +1,5 @@
 package com.saiki1212.manacall.calling
 
-internal enum class WhatsAppCall(val mimeType: String) {
-    Voice("vnd.android.cursor.item/vnd.com.whatsapp.voip.call"),
-    Video("vnd.android.cursor.item/vnd.com.whatsapp.video.call"),
-}
-
 private val phoneAddress = Regex("\\+?([1-9][0-9]{5,14})(?:@s\\.whatsapp\\.net)?")
 private val linkedAddress = Regex("[0-9]+@lid")
 private val displayedPhone = Regex("\\+[1-9][0-9() .\\p{Zs}-]*[0-9]")

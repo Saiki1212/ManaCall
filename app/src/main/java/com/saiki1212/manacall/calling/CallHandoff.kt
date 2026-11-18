@@ -28,9 +28,7 @@ internal class CallHandoff(private val context: Context) {
         return launch(Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null)))
     }
 
-    fun hasWhatsApp(): Boolean = whatsappPackages.any(::isEnabled)
-
-    fun whatsappNumber(number: PhoneNumber): String? {
+    private fun whatsappNumber(number: PhoneNumber): String? {
         val normalized = number.normalized
         if (normalized != null && internationalNumber.matches(normalized)) {
             return normalized.drop(1)
@@ -53,26 +51,23 @@ internal class CallHandoff(private val context: Context) {
             ?.takeIf(internationalNumber::matches)?.drop(1)
     }
 
-    suspend fun findWhatsAppAction(
-        contactId: Long,
-        internationalDigits: String,
-        call: WhatsAppCall,
-    ): Intent? = withContext(Dispatchers.IO) {
+    suspend fun findWhatsAppVideo(contactId: Long, number: PhoneNumber): Intent? = withContext(Dispatchers.IO) {
         if (!isEnabled(whatsapp)) return@withContext null
+        val internationalDigits = whatsappNumber(number) ?: return@withContext null
         try {
             val selection = "${Data.CONTACT_ID} = ? AND ${Data.MIMETYPE} = ? AND ${RawContacts.ACCOUNT_TYPE} = ?"
             val cursor = context.contentResolver.query(
                 Data.CONTENT_URI,
                 arrayOf(Data._ID, Data.DATA1, Data.DATA3),
                 selection,
-                arrayOf(contactId.toString(), call.mimeType, whatsapp),
+                arrayOf(contactId.toString(), videoMimeType, whatsapp),
                 null,
             )
             cursor?.use {
                 while (it.moveToNext()) {
                     if (matchesWhatsAppRecipient(it.getString(1), it.getString(2), internationalDigits)) {
                         val uri = ContentUris.withAppendedId(Data.CONTENT_URI, it.getLong(0))
-                        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, call.mimeType).setPackage(whatsapp)
+                        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, videoMimeType).setPackage(whatsapp)
                         return@use intent.takeIf { action -> action.resolveActivity(context.packageManager) != null }
                     }
                 }
@@ -88,15 +83,7 @@ internal class CallHandoff(private val context: Context) {
         }
     }
 
-    fun startWhatsAppAction(action: Intent): Boolean = launch(action)
-
-    fun openWhatsAppChat(internationalDigits: String): Boolean {
-        val uri = Uri.Builder().scheme("https").authority("wa.me")
-            .appendPath(internationalDigits).build()
-        return whatsappPackages.any { app ->
-            isEnabled(app) && launch(Intent(Intent.ACTION_VIEW, uri).setPackage(app))
-        }
-    }
+    fun startWhatsAppVideo(action: Intent): Boolean = launch(action)
 
     @Suppress("DEPRECATION")
     private fun isEnabled(packageName: String): Boolean = try {
@@ -116,7 +103,7 @@ internal class CallHandoff(private val context: Context) {
 
     private companion object {
         const val whatsapp = "com.whatsapp"
-        val whatsappPackages = listOf(whatsapp, "com.whatsapp.w4b")
+        const val videoMimeType = "vnd.android.cursor.item/vnd.com.whatsapp.video.call"
         val internationalNumber = Regex("\\+[1-9][0-9]{5,14}")
     }
 }

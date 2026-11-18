@@ -6,14 +6,14 @@ ManaCall is a photo-based calling app for Android 8.0 and up. It uses your phone
 
 1. Install the APK from [GitHub Releases](https://github.com/Saiki1212/ManaCall/releases), open ManaCall, and allow Contacts access.
 2. Use the three large icons at the bottom.
-   - **Star** shows favorite contacts. Tap the star on a contact screen to add or remove them in ManaCall. Android Contacts stars appear here by default.
+   - **Star** shows Favorites at the top and Recents below. Tap the star on a contact screen to add or remove a favorite. Recents lists outgoing calls started from ManaCall, newest first.
    - **Photo** shows people who have a contact photo. This is the starting tab.
    - **People** shows everyone in the phone’s alphabetical contact order.
-3. Use the magnifying glass field to search all saved names. Exact and partial names appear first, followed by close spellings. Search works on the phone.
-4. Tap a photo, then choose the handset, WhatsApp, or camera icon. For a contact with several numbers, select the number first.
-5. The handset starts a normal call after you allow Phone permission. Android may still ask which SIM to use. The WhatsApp and camera icons start a call when WhatsApp exposes a matching voice or video action through Android Contacts. This route also needs Phone permission. If the call action is unavailable, ManaCall opens the contact’s WhatsApp chat so you can call from there.
+3. Use the magnifying glass field to search all saved names. Exact and partial names appear first, followed by close spellings. Search works on the phone. The search field hides during downward scrolling and comes back when scrolling stops.
+4. Tap a photo, then tap the handset or the WhatsApp video button if available. For a contact with several numbers, select the number first.
+5. The handset starts a normal call after you allow Phone permission. Android may still ask which SIM to use. The labeled WhatsApp video button appears only if WhatsApp exposes a matching video action for the selected number through Android Contacts. It uses the same Phone permission to start the call.
 
-The language control switches between English and Telugu. Names stay as saved in Contacts. Edits made in Android Contacts appear when you return to ManaCall, and the app also refreshes if Contacts changes while it is open. ManaCall stores your language, permission prompt state, and favorite choices locally. It reads contact details from Android Contacts.
+The language control switches between English and Telugu. Names stay as saved in Contacts. Edits made in Android Contacts appear when you return to ManaCall, and the app also refreshes if Contacts changes while it is open. ManaCall stores your language, permission prompt state, favorite choices, and the order of recently called contacts locally. It reads contact details from Android Contacts.
 
 Open [the interactive preview](preview/index.html) from the cloned folder in a browser. Its photos and calls are samples.
 
@@ -37,5 +37,7 @@ The project has one app module. The `contacts` package reads and observes Androi
 - Change a name, photo, or Android star and delete a sample contact. Return to ManaCall and confirm the changes appear, including when the selected contact gets deleted.
 - Search for an exact name, part of a name, and a close spelling such as `Anjail` for `Anjali`. Confirm that search includes contacts without photos and that clearing search restores the tab.
 - Tap a contact with two numbers and select the second. Tap the handset and allow Phone permission when Android asks. Verify that this starts the call to the chosen number and that the next call takes one tap on the contact screen.
-- With WhatsApp set up, open both WhatsApp buttons for a saved number that uses WhatsApp. On a device where Android Contacts offers direct WhatsApp calls, check that each ManaCall icon starts the corresponding call to the selected number. If a direct action is unavailable, check that ManaCall opens the correct chat. On a phone without WhatsApp, confirm that Normal call is available and ManaCall shows a fallback message.
+- Start calls to two different contacts, then call the first again. Open Favorites and scroll down to verify that Recents shows the first contact at the top, once, followed by the second.
+- Scroll down through a long contact list and pause. Verify that search hides while scrolling and returns once the list is still.
+- On a device that offers direct WhatsApp video calling through Android Contacts, verify that the labeled button appears for a compatible number and starts its video call. Select a number without a matching video action, including a different number for the same person, and verify that the button is absent.
 - Switch to Telugu, reopen the app, and check that the language persists. Increase Android's font size and check that the screens can still scroll and the controls are usable.

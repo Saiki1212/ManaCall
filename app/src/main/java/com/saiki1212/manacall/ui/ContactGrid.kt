@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -183,13 +184,18 @@ internal fun ContactsNavigation(tab: ContactTab, changeTab: (ContactTab) -> Unit
 }
 
 @Composable
-internal fun ContactSearchField(query: String, changeQuery: (String) -> Unit) {
+internal fun ContactSearchField(
+    query: String,
+    changeQuery: (String) -> Unit,
+    changeFocus: (Boolean) -> Unit,
+) {
     OutlinedTextField(
         value = query,
         onValueChange = { changeQuery(it.take(100)) },
         modifier = Modifier.fillMaxWidth()
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .onFocusChanged { changeFocus(it.hasFocus) },
         label = { Text(stringResource(R.string.search_contacts)) },
         singleLine = true,
         textStyle = MaterialTheme.typography.titleMedium,
@@ -217,6 +223,7 @@ internal fun PhotoGrid(
     tab: ContactTab,
     query: String,
     favorites: Map<String, Boolean>,
+    recentContacts: List<String>,
     gridState: LazyGridState,
     openContact: (String) -> Unit,
 ) {
@@ -238,6 +245,16 @@ internal fun PhotoGrid(
         }
     }
 
+    val showRecents = tab == ContactTab.Favorites && !searching
+    val recent = remember(showRecents, recentContacts, snapshot) {
+        if (showRecents) {
+            val contactsByKey = snapshot.contacts.associateBy(Contact::key)
+            recentContacts.mapNotNull(contactsByKey::get)
+        } else {
+            emptyList()
+        }
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         state = gridState,
@@ -247,13 +264,8 @@ internal fun PhotoGrid(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Text(
-                stringResource(if (searching) R.string.search_results else tab.title),
-                Modifier.semantics { heading() },
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-            )
+        item(key = "contacts-heading", span = { GridItemSpan(maxLineSpan) }) {
+            SectionTitle(if (searching) R.string.search_results else tab.title)
         }
         if (contacts.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -264,10 +276,33 @@ internal fun PhotoGrid(
                 }
             }
         }
-        items(contacts, key = Contact::key) { contact ->
+        items(contacts, key = { "contact:${it.key}" }) { contact ->
             ContactTile(contact, snapshot.photoRevision) { openContact(contact.key) }
         }
+        if (showRecents) {
+            item(key = "recents-heading", span = { GridItemSpan(maxLineSpan) }) {
+                SectionTitle(R.string.recents, Modifier.padding(top = 12.dp))
+            }
+            if (recent.isEmpty()) {
+                item(key = "empty-recents", span = { GridItemSpan(maxLineSpan) }) {
+                    Text(stringResource(R.string.empty_recents), color = MutedInk)
+                }
+            }
+            items(recent, key = { "recent:${it.key}" }) { contact ->
+                ContactTile(contact, snapshot.photoRevision) { openContact(contact.key) }
+            }
+        }
     }
+}
+
+@Composable
+private fun SectionTitle(@StringRes title: Int, modifier: Modifier = Modifier) {
+    Text(
+        stringResource(title),
+        modifier.semantics { heading() },
+        style = MaterialTheme.typography.headlineSmall,
+        fontWeight = FontWeight.ExtraBold,
+    )
 }
 
 @Composable

@@ -23,15 +23,17 @@ import com.saiki1212.manacall.calling.CallHandoff
 import com.saiki1212.manacall.contacts.Contact
 import com.saiki1212.manacall.contacts.ContactsRepository
 import com.saiki1212.manacall.ui.ManaCall
+import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
     private var contactsGranted by mutableStateOf(false)
     private var permissionRequiresSettings by mutableStateOf(false)
-    private var whatsappAvailable by mutableStateOf(false)
     private var settingsError by mutableStateOf(false)
     private var phoneMessage by mutableStateOf<Int?>(null)
     private var pendingCall: CallRequest? = null
     private var favorites by mutableStateOf(emptyMap<String, Boolean>())
+    private var recentContacts by mutableStateOf(emptyList<String>())
+    private val recentPreferences by lazy { getSharedPreferences("recents", MODE_PRIVATE) }
     private val favoritePreferences by lazy { getSharedPreferences("favorites", MODE_PRIVATE) }
     private val callHandoff by lazy { CallHandoff(this) }
 
@@ -57,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         favorites = favoritePreferences.all.mapNotNull { (key, value) ->
             (value as? Boolean)?.let { key to it }
         }.toMap()
+        recentContacts = readRecentContacts()
         val repository = ContactsRepository(contentResolver)
         setContent {
             ManaCall(
@@ -65,14 +68,14 @@ class MainActivity : AppCompatActivity() {
                 callHandoff = callHandoff,
                 favorites = favorites,
                 setFavorite = ::setFavorite,
-                requestPhoneCall = { requestCall(CallRequest.Phone(it)) },
-                requestWhatsAppCall = ::requestWhatsAppCall,
+                recentContacts = recentContacts,
+                requestPhoneCall = { key, number -> requestCall(CallRequest.Phone(key, number)) },
+                requestWhatsAppVideo = { key, action -> requestCall(CallRequest.WhatsAppVideo(key, action)) },
                 phoneMessage = phoneMessage,
                 clearPhoneMessage = { phoneMessage = null },
                 contactsGranted = contactsGranted,
                 permissionRequiresSettings = permissionRequiresSettings,
                 requestContacts = ::requestContacts,
-                whatsappAvailable = whatsappAvailable,
                 setLanguage = { tag ->
                     AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
                 },
@@ -85,7 +88,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermission()
-        whatsappAvailable = callHandoff.hasWhatsApp()
     }
 
     private fun setFavorite(contact: Contact, favorite: Boolean) {
@@ -96,14 +98,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             favoritePreferences.edit { putBoolean(key, favorite) }
             favorites = favorites + (key to favorite)
-        }
-    }
-
-    private fun requestWhatsAppCall(action: Intent?, digits: String) {
-        if (action == null) {
-            openWhatsAppChat(digits)
-        } else {
-            requestCall(CallRequest.WhatsApp(action, digits))
         }
     }
 
@@ -118,33 +112,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun completeCall(call: CallRequest, granted: Boolean) {
-        when (call) {
-            is CallRequest.Phone -> {
-                if (!granted) {
-                    phoneMessage = R.string.phone_permission_denied
-                } else if (!callHandoff.callPhone(call.number)) {
-                    phoneMessage = R.string.phone_unavailable
-                }
-            }
-            is CallRequest.WhatsApp -> {
-                if (!granted || !callHandoff.startWhatsAppAction(call.action)) openWhatsAppChat(call.digits)
+        if (!granted) {
+            phoneMessage = R.string.phone_permission_denied
+            return
+        }
+        val started = when (call) {
+            is CallRequest.Phone -> callHandoff.callPhone(call.number)
+            is CallRequest.WhatsAppVideo -> callHandoff.startWhatsAppVideo(call.action)
+        }
+        if (started) {
+            recentContacts = listOf(call.key) + recentContacts.filterNot { it == call.key }
+            recentPreferences.edit { putString("order", JSONArray(recentContacts).toString()) }
+        } else {
+            phoneMessage = when (call) {
+                is CallRequest.Phone -> R.string.phone_unavailable
+                is CallRequest.WhatsAppVideo -> R.string.whatsapp_video_unavailable
             }
         }
     }
 
-    private fun openWhatsAppChat(digits: String) {
-        if (!callHandoff.openWhatsAppChat(digits)) {
-            phoneMessage = if (callHandoff.hasWhatsApp()) {
-                R.string.whatsapp_open_failed
-            } else {
-                R.string.whatsapp_unavailable
-            }
-        }
+    private fun readRecentContacts(): List<String> {
+        val saved = recentPreferences.getString("order", null) ?: return emptyList()
+        return runCatching {
+            val order = JSONArray(saved)
+            List(order.length(), order::getString)
+        }.getOrDefault(emptyList())
     }
 
     private sealed interface CallRequest {
-        data class Phone(val number: String) : CallRequest
-        data class WhatsApp(val action: Intent, val digits: String) : CallRequest
+        val key: String
+
+        data class Phone(override val key: String, val number: String) : CallRequest
+        data class WhatsAppVideo(override val key: String, val action: Intent) : CallRequest
     }
 
     private fun updatePermission() {

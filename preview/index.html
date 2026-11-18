@@ -68,8 +68,10 @@ button:focus-visible, .photo-grid:focus-visible { outline: 3px solid #4e53bd; ou
 .hero { width: min(100%, 344px); margin: auto; border-radius: 24px; }
 .name { margin: 10px 0 2px; text-align: center; font-size: 30px; line-height: 1.25; letter-spacing: -.035em; overflow-wrap: anywhere; }
 .number { margin: 0; text-align: center; font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-.call { display: grid; place-items: center; min-height: 92px; padding: 10px; border: 1px solid transparent; border-radius: 16px; }
+.actions { display: flex; gap: 10px; margin-top: 16px; }
+.call { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; gap: 5px; min-height: 104px; padding: 10px; border: 1px solid transparent; border-radius: 16px; }
+.call span { font-weight: 750; line-height: 1.2; }
+.recents { margin-top: 22px; }
 .call .glyph { inline-size: 44px; block-size: 44px; }
 .call.phone-call { color: white; background: var(--primary); }
 .call.whatsapp { color: #123b2d; background: #e3f1eb; border-color: #c8ddd2; }
@@ -111,13 +113,12 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
   <symbol id="i-solid-photo" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19,2H5C3.9,2 3,2.9 3,4v16c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V4c0,-1.1 -0.9,-2 -2,-2zM19,20H5V4h14zM12,6a3.5,3.5 0,1 0,0 7a3.5,3.5 0,1 0,0 -7zM6.5,18.5h11v-1.25c0,-1.8 -2.46,-3.25 -5.5,-3.25s-5.5,1.45 -5.5,3.25z"/></symbol>
   <symbol id="i-solid-people" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M16,11c1.66,0 2.99,-1.34 2.99,-3S17.66,5 16,5c-0.32,0 -0.63,0.05 -0.91,0.14A4.95,4.95 0,0 1,16 8a4.95,4.95 0,0 1,-0.91 2.86c0.28,0.09 0.59,0.14 0.91,0.14zM8,11c1.66,0 3,-1.34 3,-3S9.66,5 8,5 5,6.34 5,8s1.34,3 3,3zM8,13c-2.33,0 -7,1.17 -7,3.5V19h14v-2.5C15,14.17 10.33,13 8,13zM16,13c-0.29,0 -0.62,0.02 -0.97,0.05C16.2,13.9 17,15.03 17,16.5V19h6v-2.5c0,-2.33 -4.67,-3.5 -7,-3.5z"/></symbol>
   <symbol id="i-solid-person" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,12a4,4 0,1 0,0 -8a4,4 0,1 0,0 8zM12,14c-2.67,0 -8,1.34 -8,4v2h16v-2c0,-2.66 -5.33,-4 -8,-4z"/></symbol>
-  <symbol id="i-solid-chat_phone" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2C6.48,2 2,6.1 2,11.3c0,1.86 0.61,3.57 1.64,5.02L2,22l5.89,-1.64A10.61,10.61 0,0 0,12 21.2c5.52,0 10,-4.22 10,-9.9S17.52,2 12,2zM12,4c4.42,0 8,3.24 8,7.3 0,4.63 -3.58,7.9 -8,7.9 -1.25,0 -2.44,-0.25 -3.52,-0.75l-0.6,-0.28 -3,0.83 0.82,-2.89 -0.43,-0.6C4.46,14.34 4,12.89 4,11.3 4,7.24 7.58,4 12,4zM8.6,7.1c-0.6,0 -1.6,0.68 -1.6,2.2 0,2.44 2.72,5.08 5.45,6.34 1.39,0.64 2.79,0.9 3.65,0.12 0.55,-0.5 0.9,-1.42 0.56,-1.66l-2.2,-1.1c-0.29,-0.13 -0.48,-0.11 -0.7,0.13l-0.68,0.78c-0.2,0.23 -0.47,0.11 -0.66,0.01 -1.23,-0.61 -2.25,-1.62 -2.82,-2.53 -0.14,-0.22 -0.16,-0.43 0.04,-0.68l0.54,-0.66c0.18,-0.22 0.19,-0.4 0.06,-0.71l-0.86,-1.87c-0.13,-0.26 -0.43,-0.37 -0.78,-0.37z"/></symbol>
   <symbol id="i-solid-star_outline" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2l2.81,6.63 7.19,0.61 -5.46,4.73 1.64,7.03 -6.18,-3.73 -6.18,3.73 1.64,-7.03L2,9.24l7.19,-0.61zM12,6.7l-1.48,3.49 -3.78,0.32 2.87,2.49 -0.86,3.7 3.25,-1.96 3.25,1.96 -0.86,-3.7 2.87,-2.49 -3.78,-0.32z"/></symbol>
 </svg>
 <main class="page">
   <header class="preview-heading">
     <h1>ManaCall <span aria-hidden="true">/</span> Android preview</h1>
-    <p data-copy="demo">Try searching “Anjail”, tap a photo, or switch to తెలుగు. Calls are simulated.</p>
+    <p data-copy="demo">Open Favorites and scroll to Recents. Tap a photo to try the call buttons. Calls are simulated.</p>
   </header>
   <div class="screens">
     <section class="phone grid-phone" aria-labelledby="contacts-heading">
@@ -138,6 +139,10 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
           <h2 id="contacts-heading" class="grid-heading">Photo contacts</h2>
           <div class="photo-grid"></div>
           <p class="notice no-results" data-copy="noResults" role="status" hidden>No matching contacts</p>
+          <section class="recents" hidden>
+            <h2 class="grid-heading" data-copy="recents">Recents</h2>
+            <div class="photo-grid recent-grid"></div>
+          </section>
         </div>
         <nav class="tabs" aria-label="Contact views">
           <button type="button" data-tab="favorites" aria-label="Favorites" title="Favorites" aria-pressed="false"><svg class="glyph solid" aria-hidden="true"><use href="#i-solid-star"/></svg></button>
@@ -161,11 +166,9 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
             <button class="call phone-call" data-action="phone" type="button" aria-label="Normal call">
               <svg class="glyph solid" aria-hidden="true"><use href="#i-solid-phone"/></svg>
             </button>
-            <button class="call whatsapp" data-action="voice" type="button" aria-label="WhatsApp voice call">
-              <svg class="glyph solid" aria-hidden="true"><use href="#i-solid-chat_phone"/></svg>
-            </button>
             <button class="call whatsapp" data-action="video" type="button" aria-label="WhatsApp video call">
               <svg class="glyph solid" aria-hidden="true"><use href="#i-solid-video"/></svg>
+              <span data-copy="video">WhatsApp video call</span>
             </button>
           </div>
           <p class="notice" hidden data-copy="noNumber">This contact has no phone number in Android Contacts.</p>
@@ -184,34 +187,48 @@ dialog button { border: 0; background: var(--primary); color: white; border-radi
 <script>
 const copy = {
   en: {
-    demo: "Try searching “Anjail”, tap a photo, or switch to తెలుగు. Calls are simulated.",
+    demo: "Open Favorites and scroll to Recents. Tap a photo to try the call buttons. Calls are simulated.",
     favorites: "Favorites", photos: "Photo contacts", all: "All contacts", back: "Back to contacts", views: "Contact views", language: "Language", phone: "Normal call",
-    voice: "WhatsApp voice call", video: "WhatsApp video call",
+    recents: "Recents", video: "WhatsApp video call",
     search: "Search contacts", clearSearch: "Clear search", results: "Search results", noResults: "No matching contacts", emptyFavorites: "No favorites yet", addFavorite: "Add to Favorites", removeFavorite: "Remove from Favorites",
     noNumber: "This contact has no phone number in Android Contacts.", close: "Close",
     phoneDemo: "On Android, granting Phone permission lets this button start the call directly.",
-    voiceDemo: "On Android, this starts a WhatsApp voice call if the contact supports it. If a chat opens, tap the phone icon there.",
-    videoDemo: "On Android, this starts a WhatsApp video call if the contact supports it. If a chat opens, tap the camera icon there."
+    videoDemo: "On Android, this button appears when the selected number has a matching WhatsApp video action."
   },
   te: {
     demo: "ఫొటో, నక్షత్రం లేదా వ్యక్తుల గుర్తును నొక్కండి. ఇది కాల్‌ల ప్రివ్యూ.",
     favorites: "ఇష్టమైనవారు", photos: "ఫొటో కాంటాక్ట్‌లు", all: "అన్ని కాంటాక్ట్‌లు", back: "కాంటాక్ట్‌లకు తిరిగి వెళ్లండి", views: "కాంటాక్ట్‌ల విభాగాలు", language: "భాష", phone: "సాధారణ కాల్",
-    voice: "వాట్సాప్ వాయిస్ కాల్", video: "వాట్సాప్ వీడియో కాల్",
+    recents: "ఇటీవలి కాల్స్", video: "వాట్సాప్ వీడియో కాల్",
     search: "కాంటాక్ట్‌లను వెతకండి", clearSearch: "వెతికిన పదాన్ని తొలగించండి", results: "వెతికిన ఫలితాలు", noResults: "పేరుకు సరిపోయే కాంటాక్ట్‌లు లేవు", emptyFavorites: "ఇంకా ఇష్టమైనవారు లేరు", addFavorite: "ఇష్టమైనవారికి జోడించండి", removeFavorite: "ఇష్టమైనవారి నుంచి తొలగించండి",
     noNumber: "ఈ కాంటాక్ట్‌కు ఫోన్ నంబర్ సేవ్ చేయలేదు.", close: "మూసివేయండి",
     phoneDemo: "ఫోన్ అనుమతి ఇచ్చిన తర్వాత ఈ బటన్ నేరుగా కాల్ చేస్తుంది.",
-    voiceDemo: "అందుబాటులో ఉంటే వాట్సాప్ వాయిస్ కాల్ నేరుగా మొదలవుతుంది. చాట్ తెరుచుకుంటే ఫోన్ గుర్తును నొక్కండి.",
-    videoDemo: "అందుబాటులో ఉంటే వాట్సాప్ వీడియో కాల్ నేరుగా మొదలవుతుంది. చాట్ తెరుచుకుంటే కెమెరా గుర్తును నొక్కండి."
+    videoDemo: "ఎంచుకున్న నంబర్‌కు వాట్సాప్ వీడియో కాల్ అందుబాటులో ఉన్నప్పుడు ఈ బటన్ కనిపిస్తుంది."
   }
 };
 const people = [
-  { name: "Amma", favorite: true, number: "+91 ••••• ••101" },
+  { name: "Amma", favorite: true, video: true, number: "+91 ••••• ••101" },
   { name: "Nanna", number: "+91 ••••• ••102" },
-  { name: "Anjali", number: "+91 ••••• ••103" },
+  { name: "Anjali", video: true, number: "+91 ••••• ••103" },
   { name: "Ammamma", favorite: true, number: "+91 ••••• ••104" },
   { name: "Balu", number: "" }
 ];
 const grid = document.querySelector(".photo-grid");
+const recentSection = document.querySelector(".recents");
+const recentGrid = document.querySelector(".recent-grid");
+const gridScroll = document.querySelector(".grid-scroll");
+const search = document.querySelector(".search");
+let recentOrder = [2, 1, 0, 3];
+let previousScroll = 0;
+let scrollTimer;
+gridScroll.addEventListener("scroll", () => {
+  const next = gridScroll.scrollTop;
+  if (next !== previousScroll) {
+    search.hidden = next > previousScroll && document.activeElement !== searchInput;
+  }
+  previousScroll = next;
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => { search.hidden = false; }, 160);
+});
 const searchInput = document.querySelector(".search input");
 const clearSearch = document.querySelector(".clear-search");
 const favoriteButton = document.querySelector(".favorite");
@@ -224,10 +241,13 @@ let language = "en";
 let tab = "photos";
 const placeholder = '<svg class="glyph solid" aria-hidden="true"><use href="#i-solid-person"/></svg>';
 const tabs = [...document.querySelectorAll("[data-tab]")];
-const contactButtons = people.map((person, index) => {
+const contactButtons = people.map(makeContactButton);
+function makeContactButton(person, index) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "contact";
+  button.dataset.contact = index;
+  button.setAttribute("aria-pressed", String(index === selected));
   const portrait = document.createElement("span");
   portrait.className = "portrait";
   portrait.dataset.person = index;
@@ -244,19 +264,20 @@ const contactButtons = people.map((person, index) => {
     document.querySelector(".detail-scroll").scrollTop = 0;
     if (narrow.matches) document.querySelector("#contact-name").focus();
   });
-  grid.append(button);
   return button;
-});
+}
 function updateContact() {
-  const { name, number } = people[selected];
+  const { name, number, video } = people[selected];
   document.querySelector("#contact-name").textContent = name;
   document.querySelector(".number").textContent = number;
   const hero = document.querySelector(".hero");
   hero.dataset.person = selected;
   hero.innerHTML = selected === 4 ? placeholder : "";
   document.querySelector(".actions").hidden = !number;
+  document.querySelector("[data-action=video]").hidden = !video;
   document.querySelector(".detail-scroll .notice").hidden = Boolean(number);
-  contactButtons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === selected)));
+  document.querySelectorAll("[data-contact]").forEach(button =>
+    button.setAttribute("aria-pressed", String(Number(button.dataset.contact) === selected)));
   updateFavoriteButton();
 }
 function updateFavoriteButton() {
@@ -340,6 +361,10 @@ function updateTab(changeSelection = true) {
     selected = firstVisible.index;
     updateContact();
   }
+  recentSection.hidden = searching || tab !== "favorites";
+  if (!recentSection.hidden) {
+    recentGrid.replaceChildren(...recentOrder.map(index => makeContactButton(people[index], index)));
+  }
   updateFavoriteButton();
 }
 favoriteButton.addEventListener("click", () => {
@@ -379,6 +404,8 @@ document.querySelectorAll("[data-language]").forEach(button => button.addEventLi
 }));
 actionButtons.forEach(button => button.addEventListener("click", () => {
   const action = button.dataset.action;
+  recentOrder = [selected, ...recentOrder.filter(index => index !== selected)];
+  updateTab(false);
   document.querySelector("#action-title").textContent = copy[language][action];
   document.querySelector("#action-preview").textContent = copy[language][action + "Demo"];
   dialog.showModal();

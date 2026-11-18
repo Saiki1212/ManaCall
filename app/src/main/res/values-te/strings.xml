@@ -20,11 +20,7 @@
     <string name="no_phone_number">ఈ కాంటాక్ట్‌కు ఫోన్ నంబర్ సేవ్ చేయలేదు.</string>
     <string name="choose_number">ఫోన్ నంబర్ ఎంచుకోండి</string>
     <string name="normal_call">సాధారణ కాల్</string>
-    <string name="whatsapp_voice">వాట్సాప్ వాయిస్ కాల్</string>
     <string name="whatsapp_video">వాట్సాప్ వీడియో కాల్</string>
-    <string name="whatsapp_unavailable">వాట్సాప్ అందుబాటులో లేదు. సాధారణ కాల్ చేయవచ్చు.</string>
-    <string name="whatsapp_number_unavailable">వాట్సాప్‌కు దేశ కోడ్‌తో కూడిన సరైన నంబర్ కావాలి. సాధారణ కాల్ చేయవచ్చు.</string>
-    <string name="whatsapp_open_failed">వాట్సాప్‌లో ఈ చాట్ తెరవలేకపోయాము. సాధారణ కాల్ చేయవచ్చు.</string>
     <string name="close">మూసివేయండి</string>
     <string name="favorites">ఇష్టమైనవారు</string>
     <string name="photo_contacts">ఫొటో కాంటాక్ట్‌లు</string>
@@ -43,4 +39,7 @@
     <string name="phone_unavailable">ఫోన్ యాప్‌లో కాల్ మొదలుపెట్టలేకపోయాము.</string>
     <string name="add_favorite">ఇష్టమైనవారికి జోడించండి</string>
     <string name="remove_favorite">ఇష్టమైనవారి నుంచి తొలగించండి</string>
+    <string name="recents">ఇటీవలి కాల్స్</string>
+    <string name="empty_recents">ManaCall నుంచి మీరు కాల్ చేసిన వారు ఇక్కడ కనిపిస్తారు.</string>
+    <string name="whatsapp_video_unavailable">ఈ నంబర్‌కు వాట్సాప్ వీడియో కాల్ అందుబాటులో లేదు.</string>
 </resources>

@@ -36,8 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.key
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,10 +58,8 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.saiki1212.manacall.R
 import com.saiki1212.manacall.calling.CallHandoff
-import com.saiki1212.manacall.calling.WhatsAppCall
 import com.saiki1212.manacall.contacts.Contact
 import com.saiki1212.manacall.contacts.PhoneNumber
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun DetailHeader(favorite: Boolean, changeFavorite: (Boolean) -> Unit, back: () -> Unit) {
@@ -112,28 +110,14 @@ internal fun ContactActions(
     photoRevision: Long,
     callHandoff: CallHandoff,
     requestPhoneCall: (String) -> Unit,
-    requestWhatsAppCall: (Intent?, String) -> Unit,
-    whatsappAvailable: Boolean,
+    requestWhatsAppVideo: (Intent) -> Unit,
 ) {
     var chosenNumber by rememberSaveable(contact.key) { mutableStateOf<String?>(null) }
-    var findingAction by remember(contact.key) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val number = contact.numbers.firstOrNull { it.value == chosenNumber } ?: contact.numbers.firstOrNull()
-    val whatsappNumber = remember(number, callHandoff, photoRevision) {
-        number?.let(callHandoff::whatsappNumber)
-    }
-    val openWhatsApp: (WhatsAppCall) -> Unit = { call ->
-        if (!findingAction && whatsappNumber != null) {
-            findingAction = true
-            scope.launch {
-                try {
-                    val action = callHandoff.findWhatsAppAction(contact.id, whatsappNumber, call)
-                    requestWhatsAppCall(action, whatsappNumber)
-                } finally {
-                    findingAction = false
-                }
-            }
-        }
+    val videoAction = key(contact.id, number, photoRevision) {
+        produceState<Intent?>(null) {
+            if (number != null) value = callHandoff.findWhatsAppVideo(contact.id, number)
+        }.value
     }
 
     Box(
@@ -173,7 +157,6 @@ internal fun ContactActions(
                     Text(number.value, style = MaterialTheme.typography.bodyLarge.digits(), color = MutedInk)
                 }
 
-                val showWhatsApp = whatsappAvailable && whatsappNumber != null
                 Row(
                     Modifier.widthIn(max = 380.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -184,30 +167,14 @@ internal fun ContactActions(
                         modifier = Modifier.weight(1f),
                         primary = true,
                     ) { requestPhoneCall(number.value) }
-                    if (showWhatsApp) {
-                        CallButton(
-                            icon = R.drawable.ic_chat_phone,
-                            label = R.string.whatsapp_voice,
-                            modifier = Modifier.weight(1f),
-                            onClick = { openWhatsApp(WhatsAppCall.Voice) },
-                        )
+                    if (videoAction != null) {
                         CallButton(
                             icon = R.drawable.ic_video,
                             label = R.string.whatsapp_video,
                             modifier = Modifier.weight(1f),
-                            onClick = { openWhatsApp(WhatsAppCall.Video) },
-                        )
+                            showLabel = true,
+                        ) { requestWhatsAppVideo(videoAction) }
                     }
-                }
-                if (!showWhatsApp) {
-                    Text(
-                        stringResource(
-                            if (whatsappAvailable) R.string.whatsapp_number_unavailable else R.string.whatsapp_unavailable
-                        ),
-                        Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MutedInk,
-                    )
                 }
             }
         }
@@ -254,6 +221,7 @@ private fun CallButton(
     @StringRes label: Int,
     modifier: Modifier,
     primary: Boolean = false,
+    showLabel: Boolean = false,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -264,15 +232,25 @@ private fun CallButton(
         contentColor = if (primary) Color.White else Green,
         border = if (primary) null else BorderStroke(1.dp, Color(0xFFC8DDD2)),
     ) {
-        Box(
-            Modifier.heightIn(min = 92.dp).padding(12.dp),
-            contentAlignment = Alignment.Center,
+        Column(
+            Modifier.heightIn(min = 104.dp).padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically),
         ) {
+            val spokenLabel = stringResource(label)
             Icon(
                 painterResource(icon),
-                contentDescription = stringResource(label),
+                contentDescription = if (showLabel) null else spokenLabel,
                 modifier = Modifier.size(44.dp),
             )
+            if (showLabel) {
+                Text(
+                    spokenLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

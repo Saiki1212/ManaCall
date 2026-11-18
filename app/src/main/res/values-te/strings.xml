@@ -20,12 +20,8 @@
     <string name="no_phone_number">ఈ కాంటాక్ట్‌కు ఫోన్ నంబర్ సేవ్ చేయలేదు.</string>
     <string name="choose_number">ఫోన్ నంబర్ ఎంచుకోండి</string>
     <string name="normal_call">సాధారణ కాల్</string>
-    <string name="normal_call_help">ఫోన్ యాప్ తెరుచుకుంటుంది</string>
     <string name="whatsapp_voice">వాట్సాప్ వాయిస్ కాల్</string>
-    <string name="whatsapp_voice_help">వాట్సాప్‌లో ఫోన్ గుర్తును నొక్కండి</string>
     <string name="whatsapp_video">వాట్సాప్ వీడియో కాల్</string>
-    <string name="whatsapp_video_help">వాట్సాప్‌లో కెమెరా గుర్తును నొక్కండి</string>
-    <string name="phone_unavailable">ఫోన్ యాప్‌లో ఈ నంబర్‌ను తెరవలేకపోయాము.</string>
     <string name="whatsapp_unavailable">వాట్సాప్ అందుబాటులో లేదు. సాధారణ కాల్ చేయవచ్చు.</string>
     <string name="whatsapp_number_unavailable">వాట్సాప్‌కు దేశ కోడ్‌తో కూడిన సరైన నంబర్ కావాలి. సాధారణ కాల్ చేయవచ్చు.</string>
     <string name="whatsapp_open_failed">వాట్సాప్‌లో ఈ చాట్ తెరవలేకపోయాము. సాధారణ కాల్ చేయవచ్చు.</string>
@@ -34,8 +30,17 @@
     <string name="photo_contacts">ఫొటో కాంటాక్ట్‌లు</string>
     <string name="all_contacts">అన్ని కాంటాక్ట్‌లు</string>
     <string name="empty_favorites">ఇంకా ఇష్టమైనవారు లేరు</string>
-    <string name="empty_favorites_message">ఇక్కడ చూపించడానికి కాంటాక్ట్స్ యాప్‌లో వారి పేరుకు నక్షత్రం గుర్తు పెట్టండి.</string>
+    <string name="empty_favorites_message">కాంటాక్ట్‌పై నొక్కి, నక్షత్రం గుర్తును నొక్కండి.</string>
     <string name="empty_photo_contacts">ఇంకా ఫొటోలు ఉన్న కాంటాక్ట్‌లు లేవు</string>
     <string name="empty_photo_contacts_message">ఇక్కడ చూపించడానికి కాంటాక్ట్స్ యాప్‌లో ఒక కాంటాక్ట్‌కు ఫొటో జోడించండి.</string>
     <string name="language">భాష ఎంచుకోండి</string>
+    <string name="search_contacts">కాంటాక్ట్‌లను వెతకండి</string>
+    <string name="clear_search">వెతికిన పదాన్ని తొలగించండి</string>
+    <string name="search_results">వెతికిన ఫలితాలు</string>
+    <string name="no_search_results">పేరుకు సరిపోయే కాంటాక్ట్‌లు లేవు</string>
+    <string name="no_search_results_message">పేరులో కొంత భాగం లేదా వేరే స్పెల్లింగ్‌తో వెతకండి.</string>
+    <string name="phone_permission_denied">నేరుగా కాల్ చేయడానికి Android సెట్టింగ్స్‌లో ManaCall‌కు ఫోన్ అనుమతి ఇవ్వండి.</string>
+    <string name="phone_unavailable">ఫోన్ యాప్‌లో కాల్ మొదలుపెట్టలేకపోయాము.</string>
+    <string name="add_favorite">ఇష్టమైనవారికి జోడించండి</string>
+    <string name="remove_favorite">ఇష్టమైనవారి నుంచి తొలగించండి</string>
 </resources>

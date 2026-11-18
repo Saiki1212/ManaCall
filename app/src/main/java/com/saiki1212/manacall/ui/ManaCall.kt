@@ -1,5 +1,6 @@
 package com.saiki1212.manacall.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
@@ -32,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -43,6 +47,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.saiki1212.manacall.R
 import com.saiki1212.manacall.calling.CallHandoff
+import com.saiki1212.manacall.contacts.Contact
 import com.saiki1212.manacall.contacts.ContactsRepository
 import com.saiki1212.manacall.contacts.ContactsSnapshot
 import kotlinx.coroutines.CancellationException
@@ -76,6 +81,12 @@ internal fun ManaCall(
     lifecycle: Lifecycle,
     repository: ContactsRepository,
     callHandoff: CallHandoff,
+    favorites: Map<String, Boolean>,
+    setFavorite: (Contact, Boolean) -> Unit,
+    requestPhoneCall: (String) -> Unit,
+    requestWhatsAppCall: (Intent?, String) -> Unit,
+    @StringRes phoneMessage: Int?,
+    clearPhoneMessage: () -> Unit,
     contactsGranted: Boolean,
     permissionRequiresSettings: Boolean,
     requestContacts: () -> Unit,
@@ -89,7 +100,10 @@ internal fun ManaCall(
     var retry by remember { mutableIntStateOf(0) }
     var selectedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var tab by rememberSaveable { mutableStateOf(ContactTab.Photos) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     val gridState = key(tab) { rememberLazyGridState() }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val currentSnapshot = snapshot
     val selected = if (contactsGranted) currentSnapshot?.contacts?.find { it.key == selectedKey } else null
     val language = LocalConfiguration.current.locales[0].language
@@ -120,18 +134,41 @@ internal fun ManaCall(
         }
     }
 
+    LaunchedEffect(searchQuery, gridState) {
+        if (searchQuery.isNotEmpty()) gridState.scrollToItem(0)
+    }
+
     BackHandler(selected != null) { selectedKey = null }
     MaterialTheme(colorScheme = colors) {
         Scaffold(
+            modifier = Modifier.imePadding(),
             topBar = {
                 if (selected == null) {
-                    ContactsHeader(language, setLanguage)
+                    Column {
+                        ContactsHeader(language, setLanguage)
+                        if (contactsGranted && currentSnapshot != null && !failed) {
+                            ContactSearchField(searchQuery) { updated ->
+                                searchQuery = updated
+                            }
+                        }
+                    }
                 } else {
-                    DetailHeader { selectedKey = null }
+                    DetailHeader(
+                        favorite = favorites[selected.key] ?: selected.favorite,
+                        changeFavorite = { setFavorite(selected, it) },
+                        back = { selectedKey = null },
+                    )
                 }
             },
             bottomBar = {
-                if (contactsGranted && selected == null) ContactsNavigation(tab) { tab = it }
+                if (contactsGranted && selected == null) {
+                    ContactsNavigation(tab) {
+                        tab = it
+                        searchQuery = ""
+                        focus.clearFocus()
+                        keyboard?.hide()
+                    }
+                }
             },
         ) { insets ->
             Box(Modifier.fillMaxSize().padding(insets)) {
@@ -168,18 +205,27 @@ internal fun ManaCall(
                         contact = selected,
                         photoRevision = currentSnapshot.photoRevision,
                         callHandoff = callHandoff,
+                        requestPhoneCall = requestPhoneCall,
+                        requestWhatsAppCall = requestWhatsAppCall,
                         whatsappAvailable = whatsappAvailable,
                     )
                     else -> PhotoGrid(
                         snapshot = currentSnapshot,
                         tab = tab,
+                        query = searchQuery,
+                        favorites = favorites,
                         gridState = gridState,
-                        openContact = { selectedKey = it },
+                        openContact = {
+                            focus.clearFocus()
+                            keyboard?.hide()
+                            selectedKey = it
+                        },
                     )
                 }
             }
         }
 
+        phoneMessage?.let { MessageDialog(it, clearPhoneMessage) }
         if (settingsError) MessageDialog(R.string.settings_unavailable, clearSettingsError)
     }
 }

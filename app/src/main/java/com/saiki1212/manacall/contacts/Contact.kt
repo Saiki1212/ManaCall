@@ -3,6 +3,7 @@ package com.saiki1212.manacall.contacts
 import android.net.Uri
 
 internal data class Contact(
+    val id: Long,
     val key: String,
     val name: String?,
     val photo: Uri?,

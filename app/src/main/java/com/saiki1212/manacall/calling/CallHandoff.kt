@@ -1,19 +1,32 @@
 package com.saiki1212.manacall.calling
 
+import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.database.sqlite.SQLiteException
 import android.net.Uri
+import android.provider.ContactsContract.Data
+import android.provider.ContactsContract.RawContacts
 import android.telephony.PhoneNumberUtils
 import android.telephony.TelephonyManager
+import androidx.core.content.ContextCompat
 import com.saiki1212.manacall.contacts.PhoneNumber
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal class CallHandoff(private val context: Context) {
-    fun openPhone(number: PhoneNumber): Boolean =
-        launch(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number.value, null)))
+    fun hasPhonePermission(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+
+    fun callPhone(number: String): Boolean {
+        if (!hasPhonePermission()) return false
+        return launch(Intent(Intent.ACTION_CALL, Uri.fromParts("tel", number, null)))
+    }
 
     fun hasWhatsApp(): Boolean = whatsappPackages.any(::isEnabled)
 
@@ -40,7 +53,44 @@ internal class CallHandoff(private val context: Context) {
             ?.takeIf(internationalNumber::matches)?.drop(1)
     }
 
-    fun openWhatsApp(internationalDigits: String): Boolean {
+    suspend fun findWhatsAppAction(
+        contactId: Long,
+        internationalDigits: String,
+        call: WhatsAppCall,
+    ): Intent? = withContext(Dispatchers.IO) {
+        if (!isEnabled(whatsapp)) return@withContext null
+        try {
+            val selection = "${Data.CONTACT_ID} = ? AND ${Data.MIMETYPE} = ? AND ${RawContacts.ACCOUNT_TYPE} = ?"
+            val cursor = context.contentResolver.query(
+                Data.CONTENT_URI,
+                arrayOf(Data._ID, Data.DATA1, Data.DATA3),
+                selection,
+                arrayOf(contactId.toString(), call.mimeType, whatsapp),
+                null,
+            )
+            cursor?.use {
+                while (it.moveToNext()) {
+                    if (matchesWhatsAppRecipient(it.getString(1), it.getString(2), internationalDigits)) {
+                        val uri = ContentUris.withAppendedId(Data.CONTENT_URI, it.getLong(0))
+                        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, call.mimeType).setPackage(whatsapp)
+                        return@use intent.takeIf { action -> action.resolveActivity(context.packageManager) != null }
+                    }
+                }
+                null
+            }
+        } catch (_: SecurityException) {
+            null
+        } catch (_: IllegalArgumentException) {
+            // Some device contact providers do not expose third-party call rows.
+            null
+        } catch (_: SQLiteException) {
+            null
+        }
+    }
+
+    fun startWhatsAppAction(action: Intent): Boolean = launch(action)
+
+    fun openWhatsAppChat(internationalDigits: String): Boolean {
         val uri = Uri.Builder().scheme("https").authority("wa.me")
             .appendPath(internationalDigits).build()
         return whatsappPackages.any { app ->
@@ -65,7 +115,8 @@ internal class CallHandoff(private val context: Context) {
     }
 
     private companion object {
-        val whatsappPackages = listOf("com.whatsapp", "com.whatsapp.w4b")
+        const val whatsapp = "com.whatsapp"
+        val whatsappPackages = listOf(whatsapp, "com.whatsapp.w4b")
         val internationalNumber = Regex("\\+[1-9][0-9]{5,14}")
     }
 }

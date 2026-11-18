@@ -38,7 +38,7 @@ internal class ContactsRepository(private val resolver: ContentResolver) {
         ContactsSnapshot(
             contacts = contacts.map { (id, contact) ->
                 contact.copy(numbers = numbers[id].orEmpty())
-            }.sortedByDescending(Contact::hasPhoto),
+            },
             photoRevision = SystemClock.elapsedRealtimeNanos(),
         )
     }
@@ -57,6 +57,7 @@ internal class ContactsRepository(private val resolver: ContentResolver) {
                 while (it.moveToNext()) {
                     val id = it.getLong(0)
                     put(id, Contact(
+                        id = id,
                         key = it.getString(1)?.takeUnless(String::isBlank) ?: "id:$id",
                         name = it.getString(2)?.takeUnless(String::isBlank),
                         photo = it.getString(3)?.takeUnless(String::isBlank)?.let(Uri::parse),

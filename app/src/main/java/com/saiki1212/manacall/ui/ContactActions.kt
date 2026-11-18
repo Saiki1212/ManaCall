@@ -1,9 +1,11 @@
 package com.saiki1212.manacall.ui
 
+import android.content.Intent
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -34,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,16 +58,19 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.saiki1212.manacall.R
 import com.saiki1212.manacall.calling.CallHandoff
+import com.saiki1212.manacall.calling.WhatsAppCall
 import com.saiki1212.manacall.contacts.Contact
 import com.saiki1212.manacall.contacts.PhoneNumber
+import kotlinx.coroutines.launch
 
 @Composable
-internal fun DetailHeader(back: () -> Unit) {
+internal fun DetailHeader(favorite: Boolean, changeFavorite: (Boolean) -> Unit, back: () -> Unit) {
     Surface(color = Paper) {
-        Box(
+        Row(
             Modifier.fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
                 .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Surface(
                 onClick = back,
@@ -78,6 +86,22 @@ internal fun DetailHeader(back: () -> Unit) {
                     )
                 }
             }
+            Box(
+                Modifier.size(56.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(if (favorite) Indigo else Lavender)
+                    .toggleable(favorite, role = Role.Checkbox, onValueChange = changeFavorite),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painterResource(if (favorite) R.drawable.ic_star else R.drawable.ic_star_outline),
+                    contentDescription = stringResource(
+                        if (favorite) R.string.remove_favorite else R.string.add_favorite
+                    ),
+                    modifier = Modifier.size(36.dp),
+                    tint = if (favorite) Color.White else Indigo,
+                )
+            }
         }
     }
 }
@@ -87,20 +111,27 @@ internal fun ContactActions(
     contact: Contact,
     photoRevision: Long,
     callHandoff: CallHandoff,
+    requestPhoneCall: (String) -> Unit,
+    requestWhatsAppCall: (Intent?, String) -> Unit,
     whatsappAvailable: Boolean,
 ) {
     var chosenNumber by rememberSaveable(contact.key) { mutableStateOf<String?>(null) }
-    var message by remember(contact.key) { mutableStateOf<Int?>(null) }
+    var findingAction by remember(contact.key) { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val number = contact.numbers.firstOrNull { it.value == chosenNumber } ?: contact.numbers.firstOrNull()
     val whatsappNumber = remember(number, callHandoff, photoRevision) {
         number?.let(callHandoff::whatsappNumber)
     }
-    val openWhatsApp = {
-        if (whatsappNumber != null && !callHandoff.openWhatsApp(whatsappNumber)) {
-            message = if (callHandoff.hasWhatsApp()) {
-                R.string.whatsapp_open_failed
-            } else {
-                R.string.whatsapp_unavailable
+    val openWhatsApp: (WhatsAppCall) -> Unit = { call ->
+        if (!findingAction && whatsappNumber != null) {
+            findingAction = true
+            scope.launch {
+                try {
+                    val action = callHandoff.findWhatsAppAction(contact.id, whatsappNumber, call)
+                    requestWhatsAppCall(action, whatsappNumber)
+                } finally {
+                    findingAction = false
+                }
             }
         }
     }
@@ -118,7 +149,7 @@ internal fun ContactActions(
         ) {
             ContactPhoto(
                 contact, photoRevision,
-                Modifier.widthIn(max = 248.dp).fillMaxWidth(0.77f).aspectRatio(1f)
+                Modifier.widthIn(max = 380.dp).fillMaxWidth().aspectRatio(1f)
                     .clip(RoundedCornerShape(22.dp)),
             )
             Text(
@@ -142,28 +173,33 @@ internal fun ContactActions(
                     Text(number.value, style = MaterialTheme.typography.bodyLarge.digits(), color = MutedInk)
                 }
 
-                CallButton(
-                    icon = R.drawable.ic_phone,
-                    label = R.string.normal_call,
-                    help = R.string.normal_call_help,
-                    primary = true,
+                val showWhatsApp = whatsappAvailable && whatsappNumber != null
+                Row(
+                    Modifier.widthIn(max = 380.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (!callHandoff.openPhone(number)) message = R.string.phone_unavailable
+                    CallButton(
+                        icon = R.drawable.ic_phone,
+                        label = R.string.normal_call,
+                        modifier = Modifier.weight(1f),
+                        primary = true,
+                    ) { requestPhoneCall(number.value) }
+                    if (showWhatsApp) {
+                        CallButton(
+                            icon = R.drawable.ic_chat_phone,
+                            label = R.string.whatsapp_voice,
+                            modifier = Modifier.weight(1f),
+                            onClick = { openWhatsApp(WhatsAppCall.Voice) },
+                        )
+                        CallButton(
+                            icon = R.drawable.ic_video,
+                            label = R.string.whatsapp_video,
+                            modifier = Modifier.weight(1f),
+                            onClick = { openWhatsApp(WhatsAppCall.Video) },
+                        )
+                    }
                 }
-                if (whatsappAvailable && whatsappNumber != null) {
-                    CallButton(
-                        icon = R.drawable.ic_chat_phone,
-                        label = R.string.whatsapp_voice,
-                        help = R.string.whatsapp_voice_help,
-                        onClick = openWhatsApp,
-                    )
-                    CallButton(
-                        icon = R.drawable.ic_video,
-                        label = R.string.whatsapp_video,
-                        help = R.string.whatsapp_video_help,
-                        onClick = openWhatsApp,
-                    )
-                } else {
+                if (!showWhatsApp) {
                     Text(
                         stringResource(
                             if (whatsappAvailable) R.string.whatsapp_number_unavailable else R.string.whatsapp_unavailable
@@ -176,7 +212,6 @@ internal fun ContactActions(
             }
         }
     }
-    message?.let { MessageDialog(it) { message = null } }
 }
 
 @Composable
@@ -217,32 +252,27 @@ private fun TextStyle.digits() = copy(textDirection = TextDirection.Ltr)
 private fun CallButton(
     @DrawableRes icon: Int,
     @StringRes label: Int,
-    @StringRes help: Int,
+    modifier: Modifier,
     primary: Boolean = false,
     onClick: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
+        modifier = modifier.semantics { role = Role.Button },
         shape = RoundedCornerShape(16.dp),
         color = if (primary) Indigo else PaleGreen,
         contentColor = if (primary) Color.White else Green,
         border = if (primary) null else BorderStroke(1.dp, Color(0xFFC8DDD2)),
     ) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 66.dp).padding(horizontal = 13.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
+            Modifier.heightIn(min = 92.dp).padding(12.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(33.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    stringResource(label),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-                Text(stringResource(help), style = MaterialTheme.typography.bodySmall)
-            }
-            Icon(painterResource(R.drawable.ic_next), contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(
+                painterResource(icon),
+                contentDescription = stringResource(label),
+                modifier = Modifier.size(44.dp),
+            )
         }
     }
 }

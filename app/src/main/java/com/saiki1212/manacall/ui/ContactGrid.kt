@@ -28,11 +28,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -56,6 +59,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -63,6 +67,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.saiki1212.manacall.R
 import com.saiki1212.manacall.contacts.Contact
+import com.saiki1212.manacall.contacts.ContactNameSearch
 import com.saiki1212.manacall.contacts.ContactsSnapshot
 
 internal enum class ContactTab(
@@ -178,17 +183,58 @@ internal fun ContactsNavigation(tab: ContactTab, changeTab: (ContactTab) -> Unit
 }
 
 @Composable
+internal fun ContactSearchField(query: String, changeQuery: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = { changeQuery(it.take(100)) },
+        modifier = Modifier.fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        label = { Text(stringResource(R.string.search_contacts)) },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleMedium,
+        shape = RoundedCornerShape(16.dp),
+        leadingIcon = {
+            Icon(painterResource(R.drawable.ic_search), contentDescription = null, Modifier.size(28.dp))
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { changeQuery("") }) {
+                    Icon(
+                        painterResource(R.drawable.ic_clear),
+                        contentDescription = stringResource(R.string.clear_search),
+                    )
+                }
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+    )
+}
+
+@Composable
 internal fun PhotoGrid(
     snapshot: ContactsSnapshot,
     tab: ContactTab,
+    query: String,
+    favorites: Map<String, Boolean>,
     gridState: LazyGridState,
     openContact: (String) -> Unit,
 ) {
-    val contacts = remember(snapshot, tab) {
-        when (tab) {
-            ContactTab.Favorites -> snapshot.contacts.filter(Contact::favorite)
-            ContactTab.Photos -> snapshot.contacts.filter(Contact::hasPhoto)
-            ContactTab.All -> snapshot.contacts
+    val searching = query.isNotBlank()
+    val contacts = remember(snapshot, tab, query, favorites) {
+        if (searching) {
+            val matcher = ContactNameSearch(query)
+            snapshot.contacts.mapNotNull { contact ->
+                matcher.rank(contact.name)?.let { rank -> rank to contact }
+            }.sortedBy { (rank, _) -> rank }.map { (_, contact) -> contact }
+        } else {
+            when (tab) {
+                ContactTab.Favorites -> snapshot.contacts
+                    .filter { favorites[it.key] ?: it.favorite }
+                    .sortedByDescending(Contact::hasPhoto)
+                ContactTab.Photos -> snapshot.contacts.filter(Contact::hasPhoto)
+                ContactTab.All -> snapshot.contacts
+            }
         }
     }
 
@@ -203,7 +249,7 @@ internal fun PhotoGrid(
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Text(
-                stringResource(tab.title),
+                stringResource(if (searching) R.string.search_results else tab.title),
                 Modifier.semantics { heading() },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold,
@@ -211,7 +257,11 @@ internal fun PhotoGrid(
         }
         if (contacts.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Status(tab.emptyTitle, tab.emptyMessage)
+                if (searching) {
+                    Status(R.string.no_search_results, R.string.no_search_results_message)
+                } else {
+                    Status(tab.emptyTitle, tab.emptyMessage)
+                }
             }
         }
         items(contacts, key = Contact::key) { contact ->

@@ -20,12 +20,8 @@
     <string name="no_phone_number">This contact has no saved phone number.</string>
     <string name="choose_number">Choose a phone number</string>
     <string name="normal_call">Normal call</string>
-    <string name="normal_call_help">Opens the Phone app</string>
     <string name="whatsapp_voice">WhatsApp voice call</string>
-    <string name="whatsapp_voice_help">Open WhatsApp, then tap Voice call</string>
     <string name="whatsapp_video">WhatsApp video call</string>
-    <string name="whatsapp_video_help">Open WhatsApp, then tap Video call</string>
-    <string name="phone_unavailable">The Phone app could not open this number.</string>
     <string name="whatsapp_unavailable">WhatsApp is unavailable. You can use Normal call.</string>
     <string name="whatsapp_number_unavailable">WhatsApp needs a valid number with its country code. You can use Normal call.</string>
     <string name="whatsapp_open_failed">Couldn’t open this chat in WhatsApp. You can use Normal call.</string>
@@ -34,8 +30,17 @@
     <string name="photo_contacts">Photo contacts</string>
     <string name="all_contacts">All contacts</string>
     <string name="empty_favorites">No favorites yet</string>
-    <string name="empty_favorites_message">Star someone in the Contacts app to show them here.</string>
+    <string name="empty_favorites_message">Tap a contact, then tap the star to add them here.</string>
     <string name="empty_photo_contacts">No contacts with photos yet</string>
     <string name="empty_photo_contacts_message">Add a photo to a contact in the Contacts app to show them here.</string>
     <string name="language">Choose language</string>
+    <string name="search_contacts">Search contacts</string>
+    <string name="clear_search">Clear search</string>
+    <string name="search_results">Search results</string>
+    <string name="no_search_results">No matching contacts</string>
+    <string name="no_search_results_message">Try a shorter name or a different spelling.</string>
+    <string name="phone_permission_denied">To call directly, allow Phone permission in ManaCall’s Android settings.</string>
+    <string name="phone_unavailable">The Phone app could not start this call.</string>
+    <string name="add_favorite">Add to Favorites</string>
+    <string name="remove_favorite">Remove from Favorites</string>
 </resources>

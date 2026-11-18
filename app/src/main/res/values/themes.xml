@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.ManaCall" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">#FAF9FF</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
